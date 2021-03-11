@@ -46,6 +46,7 @@ def laue_import(distance_cristal, filename, a):
     d_hkl = a/np.sqrt(data["h"]**2+data["k"]**2+data["l"]**2)
     data["lambda_exp"] = 2*d_hkl*np.sin(0.5*np.arctan(data["r"]/R))
     data["lambda_the"] = 2*d_hkl*data["l"]/np.sqrt(data["h"]**2+data["k"]**2+data["l"]**2)
-    print(data)
+    
+    return data
 
-laue_import(15e-3, 'Results.csv', 562e-12)
+#laue_import(15e-3, 'Results.csv', 562e-12) # test
