@@ -102,9 +102,9 @@ def laue_graph():
 
 
 #laue_mass_import("lif")
-laue_mass_import("nacl")
+#laue_mass_import("nacl")
 #laue_mass_import("si")
-print(laue_graph())
+laue_graph()
 
 
 plt.show()
