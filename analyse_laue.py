@@ -1,8 +1,16 @@
+"""
+@author: Justin Hamel
+
+https://github.com/juham58/PHY-3003---Diffraction-rayons-X
+"""
+
 from pathlib import Path
 import re
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+
+plt.rcParams.update({'font.size': 14})
 
 def round_to_half(number):
     return round(number*2)/2
@@ -59,6 +67,9 @@ def laue_import(distance_cristal, filename, a):
 
     
     d_hkl = a/np.sqrt(data["h"]**2+data["k"]**2+data["l"]**2)
+    n = data["h"]**2+data["k"]**2+data["l"]**2
+    #data["d_hkl"] = d_hkl
+    data["n"] = n
     data["lambda_exp"] = 2*d_hkl*np.sin(0.5*np.arctan(data["r"]/R))
     data["lambda_the"] = 2*d_hkl*data["l"]/np.sqrt(data["h"]**2+data["k"]**2+data["l"]**2)
     data["lambda_error"] = np.abs((data["lambda_exp"]-data["lambda_the"])/data["lambda_the"])*100
@@ -94,11 +105,26 @@ def laue_graph():
     files = dir.glob("*.csv")
     for result in files:
         data = pd.read_csv(result)
+        crystal_name = str(result).split("\\")[-1].split("_")[0]
+        if crystal_name == "nacl":
+            crystal_name = "NaCl"
+        if crystal_name == "lif":
+            crystal_name = "LiF"
+        if  crystal_name == "si":
+            crystal_name = "Si"
+        distance_value = str(result).split("\\")[-1].split("_")[1][0:2]
+        voltage_at_peak = str(result).split("\\")[-1].split("_")[2][0:2]
+        number_of_images = str(result).split("\\")[-1].split("_")[3][0:2]
+        title = "Coordonnées u et v acquises avec le cristal de {}, à une distance de {} mm,\nune tension au pic de {} kV et un nombre d'images moyennées de {}.".format(crystal_name, distance_value, voltage_at_peak, number_of_images)
+        print(data.to_latex(caption=title))
         
-        plt.figure()
-        plt.scatter(data["u_rounded"], data["v_rounded"])
-        plt.title(str(result).split("\\")[-1])
+        plt.figure(figsize=(16,8))
+        plt.scatter(data["u"], data["v"])
+        plt.title(title)
+        plt.xlabel(r"$u=\frac{h}{l}$")
+        plt.ylabel(r"$u=\frac{k}{l}$")
         plt.grid()
+        plt.savefig(str(result)+".png")
 
 
 #laue_mass_import("lif")
