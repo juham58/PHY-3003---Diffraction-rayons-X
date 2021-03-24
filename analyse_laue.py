@@ -76,6 +76,11 @@ def laue_import(distance_cristal, filename, a):
 
     return data
 
+print(laue_import(14e-3, Path.cwd()/"nacl"/"nacl_14mm_35kvp_1images.tif.csv", 562e-12)["lambda_error"].mean())
+print(laue_import(14e-3, Path.cwd()/"nacl"/"nacl_14mm_35kvp_5images.tif.csv", 562e-12)["lambda_error"].mean())
+print(laue_import(14e-3, Path.cwd()/"nacl"/"nacl_14mm_35kvp_25images.tif.csv", 562e-12)["lambda_error"].mean())
+print(laue_import(14e-3, Path.cwd()/"nacl"/"nacl_14mm_35kvp_100images.tif.csv", 562e-12)["lambda_error"].mean())
+
 #print(laue_import(15e-3, 'Results.csv', 562e-12)) # test
 #print(laue_import(15e-3, 'nacl_14mm_35kvp_1images.csv', 562e-12)) # test
 
@@ -95,7 +100,7 @@ def laue_mass_import(crystal):
         #print(str(result).split("_")[1][0:2])
         distance = float(str(result).split("_")[1][0:2])*1e-3
         print("-------------\n",result, ":\n")
-        print(laue_import(distance, result, a))
+        print(laue_import(distance, result, a)["lambda_error"].mean())
         results_path = str(result).split("\\")[-1]+"_results.csv"
         laue_import(distance, result, a).to_csv(Path.cwd()/"Résultats"/results_path)
 
@@ -116,7 +121,8 @@ def laue_graph():
         voltage_at_peak = str(result).split("\\")[-1].split("_")[2][0:2]
         number_of_images = str(result).split("\\")[-1].split("_")[3][0:2]
         title = "Coordonnées u et v acquises avec le cristal de {}, à une distance de {} mm,\nune tension au pic de {} kV et un nombre d'images moyennées de {}.".format(crystal_name, distance_value, voltage_at_peak, number_of_images)
-        print(data.to_latex(caption=title))
+        table_title = "Données acquises avec le cristal de {}, à une distance de {} mm,\nune tension au pic de {} kV et un nombre d'images moyennées de {}.".format(crystal_name, distance_value, voltage_at_peak, number_of_images)
+        print(data.to_latex(columns=["X", "Y", "u", "v", "h", "k", "l", "n", "lambda_exp", "lambda_the", "lambda_error"], caption=table_title, label="tab:"+str(result).split("\\")[-1], column_format="|l|r|r|r|r|r|r|r|r|r|r|r|"))
         
         plt.figure(figsize=(16,8))
         plt.scatter(data["u"], data["v"])
@@ -127,10 +133,10 @@ def laue_graph():
         plt.savefig(str(result)+".png")
 
 
-#laue_mass_import("lif")
-#laue_mass_import("nacl")
-#laue_mass_import("si")
-laue_graph()
+laue_mass_import("lif")
+laue_mass_import("nacl")
+laue_mass_import("si")
+#laue_graph()
 
 
 plt.show()
