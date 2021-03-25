@@ -9,8 +9,9 @@ import re
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import StrMethodFormatter
 
-plt.rcParams.update({'font.size': 14})
+plt.rcParams.update({'font.size': 16})
 
 def round_to_half(number):
     return round(number*2)/2
@@ -76,14 +77,6 @@ def laue_import(distance_cristal, filename, a):
 
     return data
 
-print(laue_import(14e-3, Path.cwd()/"nacl"/"nacl_14mm_35kvp_1images.tif.csv", 562e-12)["lambda_error"].mean())
-print(laue_import(14e-3, Path.cwd()/"nacl"/"nacl_14mm_35kvp_5images.tif.csv", 562e-12)["lambda_error"].mean())
-print(laue_import(14e-3, Path.cwd()/"nacl"/"nacl_14mm_35kvp_25images.tif.csv", 562e-12)["lambda_error"].mean())
-print(laue_import(14e-3, Path.cwd()/"nacl"/"nacl_14mm_35kvp_100images.tif.csv", 562e-12)["lambda_error"].mean())
-
-#print(laue_import(15e-3, 'Results.csv', 562e-12)) # test
-#print(laue_import(15e-3, 'nacl_14mm_35kvp_1images.csv', 562e-12)) # test
-
 def laue_mass_import(crystal):
     if crystal == "si":
         dir = Path.cwd()/"si"
@@ -96,11 +89,7 @@ def laue_mass_import(crystal):
         a = 402e-12
     files = dir.glob("*.csv")
     for result in files:
-        #print(result)
-        #print(str(result).split("_")[1][0:2])
         distance = float(str(result).split("_")[1][0:2])*1e-3
-        print("-------------\n",result, ":\n")
-        print(laue_import(distance, result, a)["lambda_error"].mean())
         results_path = str(result).split("\\")[-1]+"_results.csv"
         laue_import(distance, result, a).to_csv(Path.cwd()/"Résultats"/results_path)
 
@@ -108,8 +97,14 @@ def laue_mass_import(crystal):
 def laue_graph():
     dir = Path.cwd()/"Résultats"
     files = dir.glob("*.csv")
+    mean_dataframe = pd.DataFrame(columns=["Nom", "Moyenne", "Écart type"])
+    index = 0
     for result in files:
+        index += 1
         data = pd.read_csv(result)
+        mean_values = pd.DataFrame({"Nom": str(result).split("\\")[-1], "Moyenne": data["lambda_error"].mean(), 
+        "Écart type": data["lambda_error"].std()}, index = [index])
+        mean_dataframe = mean_dataframe.append(mean_values, ignore_index=True)
         crystal_name = str(result).split("\\")[-1].split("_")[0]
         if crystal_name == "nacl":
             crystal_name = "NaCl"
@@ -120,23 +115,30 @@ def laue_graph():
         distance_value = str(result).split("\\")[-1].split("_")[1][0:2]
         voltage_at_peak = str(result).split("\\")[-1].split("_")[2][0:2]
         number_of_images = str(result).split("\\")[-1].split("_")[3][0:2]
-        title = "Coordonnées u et v acquises avec le cristal de {}, à une distance de {} mm,\nune tension au pic de {} kV et un nombre d'images moyennées de {}.".format(crystal_name, distance_value, voltage_at_peak, number_of_images)
-        table_title = "Données acquises avec le cristal de {}, à une distance de {} mm,\nune tension au pic de {} kV et un nombre d'images moyennées de {}.".format(crystal_name, distance_value, voltage_at_peak, number_of_images)
-        print(data.to_latex(columns=["X", "Y", "u", "v", "h", "k", "l", "n", "lambda_exp", "lambda_the", "lambda_error"], caption=table_title, label="tab:"+str(result).split("\\")[-1], column_format="|l|r|r|r|r|r|r|r|r|r|r|r|"))
+        table_title = "Données acquises avec le cristal de {}, à une distance de {} mm, \nune tension au pic de {} kV et un nombre d'images moyennées de {}.".format(crystal_name, distance_value, voltage_at_peak, number_of_images)
+
+        # Imprime les tableaux brutes en LaTeX
+        #print(data.to_latex(columns=["X", "Y", "u", "v", "h", "k", "l", "n", "lambda_exp", "lambda_the", "lambda_error"], caption=table_title, label="tab:"+str(result).split("\\")[-1], column_format="|l|r|r|r|r|r|r|r|r|r|r|r|"))
         
-        plt.figure(figsize=(16,8))
+        plt.figure(figsize=(7,7))
+        plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}'))
+        plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}'))
         plt.scatter(data["u"], data["v"])
-        plt.title(title)
-        plt.xlabel(r"$u=\frac{h}{l}$")
-        plt.ylabel(r"$u=\frac{k}{l}$")
+        plt.xlabel(r"$u=h/l$")
+        plt.ylabel(r"$v=k/l$")
         plt.grid()
         plt.savefig(str(result)+".png")
 
+    # Imprime le tableau de l'annexe B
+    #print(mean_dataframe.to_latex(label="tab:tableau_erreurs_moyennes", column_format="|l|r|r|r|"))
 
-laue_mass_import("lif")
-laue_mass_import("nacl")
-laue_mass_import("si")
-#laue_graph()
+# Importe les données en format DataFrame
+#laue_mass_import("lif")
+#laue_mass_import("nacl")
+#laue_mass_import("si")
+
+# Affiche les graphiques et les tableaux
+laue_graph()
 
 
 plt.show()
