@@ -74,6 +74,7 @@ def laue_import(distance_cristal, filename, a):
     data["lambda_exp"] = 2*d_hkl*np.sin(0.5*np.arctan(data["r"]/R))
     data["lambda_the"] = 2*d_hkl*data["l"]/np.sqrt(data["h"]**2+data["k"]**2+data["l"]**2)
     data["lambda_error"] = np.abs((data["lambda_exp"]-data["lambda_the"])/data["lambda_the"])*100
+    print(filename, n)
 
     return data
 
@@ -133,9 +134,9 @@ def laue_graph():
     #print(mean_dataframe.to_latex(label="tab:tableau_erreurs_moyennes", column_format="|l|r|r|r|"))
 
 # Importe les données en format DataFrame
-#laue_mass_import("lif")
-#laue_mass_import("nacl")
-#laue_mass_import("si")
+laue_mass_import("lif")
+laue_mass_import("nacl")
+laue_mass_import("si")
 
 # Affiche les graphiques et les tableaux
 laue_graph()
